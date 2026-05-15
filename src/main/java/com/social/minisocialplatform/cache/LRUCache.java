@@ -66,4 +66,12 @@ public class LRUCache<K, V> implements Cache<K, V> {
 
         }
     }
+
+    public void invalidate(K key) {
+        Node<K, V> node = cacheMap.get(key);
+        if(node != null) {
+            removeNode(node);
+            cacheMap.remove(key);
+        }
+    }
 }
