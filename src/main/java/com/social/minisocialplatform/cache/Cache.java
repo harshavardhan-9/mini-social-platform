@@ -1,4 +1,4 @@
-package.com.social.minisocialplatform.cache;
+package com.social.minisocialplatform.cache;
 
 public interface Cache<K, V> {
     V get(K key);

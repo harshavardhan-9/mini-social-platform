@@ -20,7 +20,7 @@ public class FeedService {
             List<Post> dbFeed =new ArrayList<>(); //simulate DB fetch
             try {
                 BufferedReader reader = new BufferedReader(
-                new FileReader("src/main/resources/posts.txt") );
+                new FileReader("src/main/resources/post.txt") );
                 
                 String line;
                 while((line = reader.readLine()) != null) {
@@ -46,7 +46,7 @@ public class FeedService {
         //save to DB-Flat file
         try {
             BufferedWriter writer = new BufferedWriter(
-                new FileWriter("src/main/resources/posts.txt", true) );
+                new FileWriter("src/main/resources/post.txt", true) );
             writer.write(userId + "," + content);
             writer.newLine();
             writer.close();

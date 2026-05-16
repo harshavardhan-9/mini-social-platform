@@ -1,4 +1,6 @@
 user1,Hello world
 user1,My second post
 user2,Good morning
-user3,Learning caching
+user3,Learning cachinguser4,Logging out
+user4,Logging out
+user4,Logging out

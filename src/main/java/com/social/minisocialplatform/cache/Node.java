@@ -1,4 +1,4 @@
-package.com.social.minisocialplatform.cache;
+package com.social.minisocialplatform.cache;
 
 public class Node<K, V> {
     K key;
@@ -10,5 +10,5 @@ public class Node<K, V> {
         this.key = key;
         this.value = value;
     }
-
+}
 
