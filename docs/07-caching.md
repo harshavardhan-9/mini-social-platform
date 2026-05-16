@@ -3,6 +3,7 @@
 ## What to Cache
 
 The primary thing to cache is the user feed response.
+Also, expensive query results
 
 Example:
 
@@ -32,9 +33,9 @@ Other useful cache candidates:
 
 The mobile app or browser can cache:
 
-* images
-* videos
-* recently viewed posts
+* recently viewed media/posts
+* previously loaded feed
+* profile thumbnails
 
 Benefits:
 
@@ -52,8 +53,8 @@ Limitations:
 
 CDNs are useful for:
 
-* images
-* reels/videos
+* globally distributed images/media 
+* reels/videos requested by many users
 * static assets
 
 Benefits:
@@ -121,10 +122,7 @@ Feed cache should be invalidated when:
 Example:
 
 ```text id="97c94r"
-POST /post
-```
-
-should invalidate affected feed caches so users receive fresh content.
+POST /post - should invalidate affected feed caches so users receive fresh content.
 
 ---
 
@@ -132,17 +130,15 @@ should invalidate affected feed caches so users receive fresh content.
 
 ## LRU (Least Recently Used)
 
-Removes least recently accessed entries.
-
-Works well because recently viewed feeds are likely to be viewed again.
+- Removes least recently accessed entries.
+- Works well because recently viewed feeds are likely to be viewed again.
 
 ---
 
 ## LFU (Least Frequently Used)
 
-Removes least frequently accessed entries.
-
-Useful for workloads with stable popularity patterns.
+- Removes least frequently accessed entries.
+- Useful for workloads with stable popularity patterns.
 
 Example:
 
@@ -160,7 +156,6 @@ Without protection:
 100 requests
 → 100 database reads
 ```
-
 This can overload backend systems.
 
 ---
