@@ -16,6 +16,7 @@ public class FeedService {
     }
 
     public List<Post> getFeed(String userId) {
+        long start = System.currentTimeMillis();
         List<Post> feed = feedCache.get(userId);
         if(feed == null) {
             //fetch from DB
@@ -48,6 +49,8 @@ public class FeedService {
                 }
             }
         }
+        long end = System.currentTimeMillis();
+        System.out.println("Feed fetch time: " + (end - start) + " ms");
         return feed;
     }
 
