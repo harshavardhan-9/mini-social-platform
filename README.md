@@ -141,6 +141,6 @@ Subsequent requests are served directly from the in-memory LRU cache.
 
 ---
 
-Documentation
+# Documentation
 
 docs/07-caching.md - Adding Caching to Instagram feed
