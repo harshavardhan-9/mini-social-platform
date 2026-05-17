@@ -1,17 +1,25 @@
 package com.social.minisocialplatform.service;
 
-import java.io.*;
 import java.util.*;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.social.minisocialplatform.cache.LRUCache;
 import com.social.minisocialplatform.model.Post;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class FeedService {
     LRUCache<String, List<Post>> feedCache;
     
-    private Map<String, Object> requestLocks = new HashMap<>();
+    private Map<String, Object> requestLocks = new ConcurrentHashMap<>();
 
-    public FeedService() {
+    private JdbcTemplate jdbcTemplate;
+
+    public FeedService(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
         feedCache = new LRUCache<>(5);
     }
 
@@ -19,31 +27,25 @@ public class FeedService {
         long start = System.currentTimeMillis();
         List<Post> feed = feedCache.get(userId);
         if(feed == null) {
-            //fetch from DB
+
+
             Object lock = requestLocks.computeIfAbsent(userId, k -> new Object());
-            
-            synchronized(lock){
+
+            synchronized(lock) {
+
                 feed = feedCache.get(userId);
+
                 if(feed == null) {
-                    List<Post> dbFeed =new ArrayList<>(); //simulate DB fetch
-                    try {
-                        System.out.println("Reading file for user: " + userId);
-                        BufferedReader reader = new BufferedReader(
-                        new FileReader("src/main/resources/post.txt") );
-                        
-                        String line;
-                        while((line = reader.readLine()) != null) {
-                            String[] parts = line.split(",");
-                            if(parts[0].equals(userId)) {
-                                Post post = new Post(parts[0], parts[1]);
-                                dbFeed.add(post);
-                            }
-                        }
-                        reader.close();
-                    }
-                    catch(IOException e) {
-                        e.printStackTrace();
-                    }
+                    System.out.println("Fetching from database for user: " + userId);
+                    List<Post> dbFeed = jdbcTemplate.query(
+                        "SELECT user_id, content FROM posts WHERE user_id = ?",
+                        (rs, rowNum) -> new Post(
+                            rs.getInt("user_id"),
+                            rs.getString("content")
+                        ),
+                        Integer.parseInt(userId)
+                    );
+
                     feed = dbFeed;
                     feedCache.put(userId, feed);
                 }
@@ -55,18 +57,11 @@ public class FeedService {
     }
 
     public void addPost(String userId, String content) {
-        Post newPost = new Post(userId, content);
-        //save to DB-Flat file
-        try {
-            BufferedWriter writer = new BufferedWriter(
-                new FileWriter("src/main/resources/post.txt", true) );
-            writer.write(userId + "," + content);
-            writer.newLine();
-            writer.close();
-        }
-        catch(IOException e) {
-            e.printStackTrace();
-        }
+        jdbcTemplate.update(
+            "INSERT INTO posts(user_id, content) VALUES (?, ?)",
+            Integer.parseInt(userId),
+            content
+        );
         //invalidate cache
         feedCache.invalidate(userId);
     }

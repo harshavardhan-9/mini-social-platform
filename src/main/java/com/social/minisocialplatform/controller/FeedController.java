@@ -1,5 +1,6 @@
 package com.social.minisocialplatform.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.social.minisocialplatform.model.Post;
@@ -10,7 +11,10 @@ import java.util.List;
 @RequestMapping("/api")
 
 public class FeedController {
-    private FeedService feedService = new FeedService();
+    // private FeedService feedService = new FeedService();
+
+    @Autowired
+    private FeedService feedService;
 
     @GetMapping("/feed/{userId}")
     public List<Post> getFeed(@PathVariable String userId) {
@@ -19,7 +23,7 @@ public class FeedController {
 
     @PostMapping("/post")
     public String addPost(@RequestBody Post post) {
-        feedService.addPost(post.getUserId(), post.getContent());
+        feedService.addPost(String.valueOf(post.getUserId()), post.getContent());
         return "Post added successfully";
     }
 }

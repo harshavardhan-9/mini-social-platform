@@ -11,7 +11,9 @@ A Spring Boot backend project implementing custom caching systems and feed optim
 * Request coalescing for cache stampede protection
 * Concurrent load testing
 * LRU vs LFU benchmark
-* Feed API using flat-file storage
+* Feed API using PostgreSQL
+* Indexed database queries
+* PostgreSQL migration from flat-file storage
 
 ---
 
@@ -21,6 +23,9 @@ A Spring Boot backend project implementing custom caching systems and feed optim
 * Spring Boot
 * Maven
 * JUnit
+* PostgreSQL
+* Spring JDBC
+* Spring Data JPA
 
 ---
 
@@ -48,7 +53,7 @@ GET /api/feed/{userId}
 Example:
 
 ```http id="xzyt63"
-GET http://localhost:8080/api/feed/user1
+GET http://localhost:8080/api/feed/1
 ```
 
 ---
@@ -63,7 +68,7 @@ Request Body:
 
 ```json id="bzfztl"
 {
-  "userId":"user1",
+  "userId":1,
   "content":"Hello World"
 }
 ```
@@ -106,7 +111,7 @@ Simulates 100 concurrent requests hitting the same cold cache key.
 
 Observed behavior:
 
-* only one request reads the file
+* only one request fetchea from database
 * remaining requests wait and reuse cached data
 
 ---
@@ -124,8 +129,56 @@ Observed behavior:
 ### Cache Hit (Second Request)
 ![alt text](image-1.png)
 
-The first request reads data from the flat file and populates the cache.
+The first request fetches data from PostgreSQL and populates the cache.
 Subsequent requests are served directly from the in-memory LRU cache.
+
+---
+
+# PostgreSQL Migration
+
+Assignment 7 replaces flat-file storage with PostgreSQL.
+
+Implemented:
+- relational schema
+- indexed queries
+- JDBC integration
+- optimized feed queries
+
+Database tables:
+- users
+- posts
+- follows
+- likes
+
+---
+
+# Database Indexing
+
+Added indexes:
+
+```sql
+CREATE INDEX idx_posts_user_id ON posts(user_id);
+CREATE INDEX idx_posts_created_at ON posts(created_at);
+CREATE INDEX idx_follows_follower_id ON follows(follower_id);
+```
+
+---
+
+# Query Optimization
+
+## Before Indexing
+
+Query used sequential scan.
+
+![alt text](before-index.png)
+
+---
+
+## After Indexing
+
+Query used bitmap index scan.
+
+![alt text](after-index.png)
 
 ---
 
@@ -143,4 +196,14 @@ Subsequent requests are served directly from the in-memory LRU cache.
 
 # Documentation
 
-docs/07-caching.md - Adding Caching to Instagram feed
+docs/07-caching.md - Adding Caching to Instagram Feed
+
+docs/08-db-choice.md - Database choice and ER design
+
+docs/08-ecommerce-db.md - E-commerce database design
+
+docs/optimized-queries.md - Optimized SQL queries
+
+docs/explain-before.txt - Query plan before indexes
+
+docs/explain-after.txt - Query plan after indexes
