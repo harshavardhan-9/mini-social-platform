@@ -13,7 +13,7 @@ public class ConsistentHashing {
     }
 
     private int hash(String key) {
-        return Math.abs(key.hashCode());
+        return Math.abs(key.hashCode() % 1000);
     }
 
     public void addNode(ShardNode node) {
@@ -25,9 +25,9 @@ public class ConsistentHashing {
         }
     }
 
-    public void getNode(String key) {
+    public ShardNode getNode(String key) {
         if(ring.isEmpty()) {
-            return;
+            return null;
         }
         int hash = hash(key);
 
@@ -39,11 +39,12 @@ public class ConsistentHashing {
     }
 
     public void removeNode(ShardNode node) {
-    for(int i = 0; i < virtualNodes; i++) {
-        String virtualNodeKey = node.getId() + "-" + i;
 
-        int hash = hash(virtualNodeKey);
-        ring.remove(hash);
+        for(int i = 0; i < virtualNodes; i++) {
+            String virtualNodeKey = node.getId() + "-" + i;
+
+            int hash = hash(virtualNodeKey);
+            ring.remove(hash);
+        }
     }
-}
 }
