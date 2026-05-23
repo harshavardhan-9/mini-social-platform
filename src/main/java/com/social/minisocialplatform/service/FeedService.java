@@ -8,6 +8,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.social.minisocialplatform.cache.LRUCache;
 import com.social.minisocialplatform.model.Post;
 
+import com.social.minisocialplatform.messaging.PostCreatedEvent;
+import com.social.minisocialplatform.messaging.PostEventPublisher;
+
+import java.util.UUID;
+
 import com.social.minisocialplatform.sharding.ShardRouter;
 
 import org.springframework.stereotype.Service;
@@ -20,9 +25,11 @@ public class FeedService {
 
     private JdbcTemplate jdbcTemplate;
     private ShardRouter shardRouter;
+    private PostEventPublisher postEventPublisher;
 
-    public FeedService(JdbcTemplate jdbcTemplate) {
+    public FeedService(JdbcTemplate jdbcTemplate, PostEventPublisher postEventPublisher) {
         this.jdbcTemplate = jdbcTemplate;
+        this.postEventPublisher = postEventPublisher;
         this.shardRouter = new ShardRouter();
         feedCache = new LRUCache<>(5);
     }
@@ -74,6 +81,9 @@ public class FeedService {
             Integer.parseInt(userId),
             content
         );
+
+        PostCreatedEvent event = new PostCreatedEvent(UUID.randomUUID().toString(), userId, content);
+        postEventPublisher.publishPostCreatedEvent(event);
         //invalidate cache
         feedCache.invalidate(userId);
     }
