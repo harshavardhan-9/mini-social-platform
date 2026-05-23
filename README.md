@@ -40,6 +40,7 @@ src/main/java/com/social/minisocialplatform
 ├── benchmark
 ├── cache
 ├── controller
+├── messaging
 ├── model
 ├── replication
 ├── service
@@ -96,6 +97,38 @@ http://localhost:8080
 ```
 
 ---
+
+# RabbitMQ Setup
+
+RabbitMQ is used as the message broker for asynchronous event processing.
+
+Download and run RabbitMQ:
+
+```bash id="x3c6s8"
+https://www.rabbitmq.com/download.html
+```
+
+Default configuration used:
+
+```properties
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=guest
+spring.rabbitmq.password=guest
+```
+
+## RabbitMQ dashboard:
+```bash id="x3c6s8"
+http://localhost:15672
+```
+
+## Default credentials:
+```bash id="x3c6s8"
+username: guest
+password: guest
+```
+---
+
 
 # Running Benchmark
 
@@ -188,6 +221,27 @@ Query used bitmap index scan.
 
 ---
 
+
+
+---
+
+# Backpressure Handling
+Implemented backpressure handling using bounded concurrent processing and load shedding.
+
+Simulation:
+- slow consumer simulated using Thread.sleep(5000)
+- pending event counter tracks worker load
+- if pending events exceed threshold, events are dropped
+
+Example:
+```text
+Current pending events in feed worker: 6
+Backpressure triggered. Dropping event
+```
+
+This prevents worker overload during traffic spikes.
+---
+
 # Implemented Concepts
 
 * Cache-aside pattern
@@ -206,6 +260,13 @@ Query used bitmap index scan.
 * Distributed storage simulation
 * Leader-follower replication
 * Eventual consistency simulation
+* RabbitMQ messaging
+* At-least-once delivery
+* Idempotent consumers
+* Backpressure handling
+* Load shedding
+* Dead Letter Queue (DLQ)
+* Asynchronous processing
 
 ---
 
@@ -219,3 +280,4 @@ Query used bitmap index scan.
 - docs/explain-after.txt - Query plan after indexes
 - docs/09-sharding-decisions.md - Sharding key trade-offs and decisions
 - docs/09-user-storage.md - Scalable user storage design for 100M users
+- docs/10-order-processing.md - Scalable order processing system design
