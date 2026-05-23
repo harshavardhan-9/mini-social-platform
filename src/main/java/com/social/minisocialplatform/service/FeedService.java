@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.social.minisocialplatform.cache.LRUCache;
 import com.social.minisocialplatform.model.Post;
 
+import com.social.minisocialplatform.sharding.ShardRouter;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,9 +19,11 @@ public class FeedService {
     private Map<String, Object> requestLocks = new ConcurrentHashMap<>();
 
     private JdbcTemplate jdbcTemplate;
+    private ShardRouter shardRouter;
 
     public FeedService(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.shardRouter = new ShardRouter();
         feedCache = new LRUCache<>(5);
     }
 
@@ -37,6 +41,10 @@ public class FeedService {
 
                 if(feed == null) {
                     System.out.println("Fetching from database for user: " + userId);
+
+                    String shard = shardRouter.getShard(userId);
+                    System.out.println("User " + userId + " is routed to shard: " + shard);
+
                     List<Post> dbFeed = jdbcTemplate.query(
                         "SELECT user_id, content FROM posts WHERE user_id = ?",
                         (rs, rowNum) -> new Post(
@@ -57,6 +65,10 @@ public class FeedService {
     }
 
     public void addPost(String userId, String content) {
+
+        String shard = shardRouter.getShard(userId);
+        System.out.println("Adding post for user " + userId + " to shard: " + shard);
+
         jdbcTemplate.update(
             "INSERT INTO posts(user_id, content) VALUES (?, ?)",
             Integer.parseInt(userId),
