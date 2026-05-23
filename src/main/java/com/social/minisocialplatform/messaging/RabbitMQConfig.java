@@ -17,6 +17,8 @@ public class RabbitMQConfig {
     public static final String NOTIFICATION_QUEUE = "notification_queue";
     public static final String FEED_QUEUE = "feed_queue";
 
+    public static final String DLQ_QUEUE = "dead_letter_queue";
+
     @Bean
     public FanoutExchange fanoutExchange() {
         return new FanoutExchange(EXCHANGE);
@@ -32,6 +34,11 @@ public class RabbitMQConfig {
         return new Queue(NOTIFICATION_QUEUE, true);
     }
 
+    @Bean
+    public Queue deadLetterQueue() {
+        return new Queue(DLQ_QUEUE, true);
+    }
+    
     @Bean
     public Binding feedBinding(Queue feedQueue, FanoutExchange fanoutExchange) {
         return BindingBuilder.bind(feedQueue).to(fanoutExchange);

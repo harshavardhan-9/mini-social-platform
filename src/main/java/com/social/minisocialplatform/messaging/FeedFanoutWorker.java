@@ -1,6 +1,7 @@
 package com.social.minisocialplatform.messaging;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -10,8 +11,11 @@ public class FeedFanoutWorker {
 
     private static int pendingEvents = 0;
 
-    public FeedFanoutWorker(IdempotencyStore idempotencyStore) {
+    private RabbitTemplate rabbitTemplate;
+
+    public FeedFanoutWorker(IdempotencyStore idempotencyStore, RabbitTemplate rabbitTemplate) {
         this.idempotencyStore = idempotencyStore;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @RabbitListener(queues = RabbitMQConfig.FEED_QUEUE)
@@ -33,6 +37,13 @@ public class FeedFanoutWorker {
         new Thread(() -> {
             System.out.println("Feed worker processing event: " + event.getEventId());
             System.out.println("Updating feed for user: " + event.getUserId());
+
+            if(event.getContent().toUpperCase().contains("FAIL")) {
+                System.out.println("Event failed processing. Sending to DLQ: " + event.getEventId());
+                rabbitTemplate.convertAndSend(RabbitMQConfig.DLQ_QUEUE, event);
+                pendingEvents--;
+                return;
+            }
 
             try {
                 Thread.sleep(5000);
