@@ -14,6 +14,10 @@ A Spring Boot backend project implementing custom caching systems and feed optim
 * Feed API using PostgreSQL
 * Indexed database queries
 * PostgreSQL migration from flat-file storage
+* Consistent hashing with virtual nodes
+* Shard routing simulation
+* Leader-follower replication simulation
+* Eventual consistency lag demonstration
 
 ---
 
@@ -31,13 +35,15 @@ A Spring Boot backend project implementing custom caching systems and feed optim
 
 # Project Structure
 
-```text id="8rx2o5"
+```text
 src/main/java/com/social/minisocialplatform
+├── benchmark
 ├── cache
 ├── controller
-├── service
 ├── model
-├── benchmark
+├── replication
+├── service
+├── sharding
 ```
 
 ---
@@ -111,7 +117,7 @@ Simulates 100 concurrent requests hitting the same cold cache key.
 
 Observed behavior:
 
-* only one request fetchea from database
+* only one request fetches from database
 * remaining requests wait and reuse cached data
 
 ---
@@ -136,7 +142,7 @@ Subsequent requests are served directly from the in-memory LRU cache.
 
 # PostgreSQL Migration
 
-Assignment 7 replaces flat-file storage with PostgreSQL.
+The project replaces flat-file storage with PostgreSQL.
 
 Implemented:
 - relational schema
@@ -191,19 +197,25 @@ Query used bitmap index scan.
 * Request coalescing
 * Concurrent load handling
 * Cache stampede protection
+* PostgreSQL integration
+* Database indexing
+* Query optimization
+* Consistent hashing
+* Virtual nodes
+* Shard routing
+* Distributed storage simulation
+* Leader-follower replication
+* Eventual consistency simulation
 
 ---
 
 # Documentation
 
-docs/07-caching.md - Adding Caching to Instagram Feed
-
-docs/08-db-choice.md - Database choice and ER design
-
-docs/08-ecommerce-db.md - E-commerce database design
-
-docs/optimized-queries.md - Optimized SQL queries
-
-docs/explain-before.txt - Query plan before indexes
-
-docs/explain-after.txt - Query plan after indexes
+- docs/07-caching.md - Adding Caching to Instagram Feed
+- docs/08-db-choice.md - Database choice and ER design
+- docs/08-ecommerce-db.md - E-commerce database design
+- docs/optimized-queries.md - Optimized SQL queries
+- docs/explain-before.txt - Query plan before indexes
+- docs/explain-after.txt - Query plan after indexes
+- docs/09-sharding-decisions.md - Sharding key trade-offs and decisions
+- docs/09-user-storage.md - Scalable user storage design for 100M users
