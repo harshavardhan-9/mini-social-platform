@@ -87,4 +87,9 @@ public class FeedService {
         //invalidate cache
         feedCache.invalidate(userId);
     }
+
+    public void deletePost(int postId) {
+        jdbcTemplate.update("DELETE FROM posts WHERE id = ?", postId);
+        System.out.println("Deleted post with ID: " + postId);
+    } 
 }

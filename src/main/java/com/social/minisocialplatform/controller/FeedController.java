@@ -7,6 +7,8 @@ import com.social.minisocialplatform.model.Post;
 import com.social.minisocialplatform.service.FeedService;
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api")
 
@@ -25,6 +27,16 @@ public class FeedController {
     public String addPost(@RequestBody Post post) {
         feedService.addPost(String.valueOf(post.getUserId()), post.getContent());
         return "Post added successfully";
+    }
+
+    @DeleteMapping("/post/{postId}")
+    public String deletePost(@PathVariable int postId, HttpServletRequest request) {
+        String role = (String) request.getAttribute("role");
+        if (!"ADMIN".equals(role)) {
+            return "Unauthorized";
+        }
+        feedService.deletePost(postId);
+        return "Post deleted successfully";
     }
 }
 
