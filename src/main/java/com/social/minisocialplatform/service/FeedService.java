@@ -82,7 +82,7 @@ public class FeedService {
         return feed;
     }
 
-    public void addPost(String userId, String content) {
+    public void addPost(String userId, String content, String traceId) {
 
         String shard = shardRouter.getShard(userId);
         System.out.println("Adding post for user " + userId + " to shard: " + shard);
@@ -93,7 +93,9 @@ public class FeedService {
             content
         );
 
-        PostCreatedEvent event = new PostCreatedEvent(UUID.randomUUID().toString(), userId, content);
+        // String traceId =UUID.randomUUID().toString();
+
+        PostCreatedEvent event = new PostCreatedEvent(UUID.randomUUID().toString(), userId, content, traceId);
         postEventPublisher.publishPostCreatedEvent(event);
         //invalidate cache
         feedCache.invalidate(userId);

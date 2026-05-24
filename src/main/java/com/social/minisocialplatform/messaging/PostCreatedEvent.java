@@ -6,14 +6,16 @@ public class PostCreatedEvent implements Serializable {
     private String eventId;
     private String userId;
     private String content;
+    private String traceId;
 
     public PostCreatedEvent() {
     }
 
-    public PostCreatedEvent(String eventId, String userId, String content) {
+    public PostCreatedEvent(String eventId, String userId, String content, String traceId) {
         this.eventId = eventId;
         this.userId = userId;
         this.content = content;
+        this.traceId = traceId;
     }
 
     public String getEventId() {
@@ -26,5 +28,9 @@ public class PostCreatedEvent implements Serializable {
 
     public String getContent() {
         return content;
+    }
+
+    public String getTraceId() {
+        return traceId;
     }
 }

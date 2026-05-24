@@ -34,7 +34,8 @@ public class FeedController {
         if(!rateLimiterService.allowRequest(username)) {
             return "Rate limit exceeded. Please try again later.";
         }
-        feedService.addPost(String.valueOf(post.getUserId()), post.getContent());
+        String traceId = (String) request.getAttribute("requestId");
+        feedService.addPost(String.valueOf(post.getUserId()), post.getContent(), traceId);
         return "Post added successfully";
     }
 

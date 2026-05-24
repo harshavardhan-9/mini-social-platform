@@ -35,6 +35,7 @@ public class FeedFanoutWorker {
         }
         
         new Thread(() -> {
+            System.out.println("Trace ID: " + event.getTraceId());
             System.out.println("Feed worker processing event: " + event.getEventId());
             System.out.println("Updating feed for user: " + event.getUserId());
 

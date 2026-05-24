@@ -22,6 +22,7 @@ public class NotificationWorker {
         }
 
         System.out.println("Notification worker processing event: " + event.getEventId());
+        System.out.println("Trace ID: " + event.getTraceId());
         String notification = "User" + event.getUserId() + " created a new post: " + event.getContent();
 
         // Simulate sending notification by writing to a file

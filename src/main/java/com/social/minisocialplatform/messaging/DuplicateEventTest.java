@@ -14,7 +14,7 @@ public class DuplicateEventTest implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        PostCreatedEvent event = new PostCreatedEvent("test-event-id", "99", "Testing Duplicate Events");
+        PostCreatedEvent event = new PostCreatedEvent("test-event-id", "99", "Testing Duplicate Events", "trace-id-123");
         postEventPublisher.publishPostCreatedEvent(event);
         postEventPublisher.publishPostCreatedEvent(event); // Publish duplicate event
     }
