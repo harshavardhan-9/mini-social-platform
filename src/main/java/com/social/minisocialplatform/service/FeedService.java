@@ -10,12 +10,10 @@ import com.social.minisocialplatform.model.Post;
 
 import com.social.minisocialplatform.messaging.PostCreatedEvent;
 import com.social.minisocialplatform.messaging.PostEventPublisher;
-
-import java.util.UUID;
-
 import com.social.minisocialplatform.sharding.ShardRouter;
-
 import org.springframework.stereotype.Service;
+
+import com.social.minisocialplatform.ratelimiter.CircuitBreaker;
 
 @Service
 public class FeedService {
@@ -26,6 +24,7 @@ public class FeedService {
     private JdbcTemplate jdbcTemplate;
     private ShardRouter shardRouter;
     private PostEventPublisher postEventPublisher;
+    private CircuitBreaker circuitBreaker = new CircuitBreaker();
 
     public FeedService(JdbcTemplate jdbcTemplate, PostEventPublisher postEventPublisher) {
         this.jdbcTemplate = jdbcTemplate;
@@ -52,17 +51,29 @@ public class FeedService {
                     String shard = shardRouter.getShard(userId);
                     System.out.println("User " + userId + " is routed to shard: " + shard);
 
-                    List<Post> dbFeed = jdbcTemplate.query(
-                        "SELECT user_id, content FROM posts WHERE user_id = ?",
-                        (rs, rowNum) -> new Post(
-                            rs.getInt("user_id"),
-                            rs.getString("content")
-                        ),
-                        Integer.parseInt(userId)
-                    );
-
-                    feed = dbFeed;
-                    feedCache.put(userId, feed);
+                    if (!circuitBreaker.allowRequest()) {
+                        throw new RuntimeException( "Circuit breaker OPEN. Requests blocked.");
+                    }
+                    try{
+                        if (userId.equals("999")) {
+                            throw new RuntimeException("Simulated database failure");
+                        }
+                        List<Post> dbFeed = jdbcTemplate.query(
+                            "SELECT user_id, content FROM posts WHERE user_id = ?",
+                            (rs, rowNum) -> new Post(
+                                rs.getInt("user_id"),
+                                rs.getString("content")
+                            ),
+                            Integer.parseInt(userId)
+                        );
+                        circuitBreaker.recordSuccess();
+                        feed = dbFeed;
+                        feedCache.put(userId, feed);
+                    }
+                    catch(Exception e) {
+                        circuitBreaker.recordFailure();
+                        throw new RuntimeException("DB failure simulated. Circuit breaker state: " + circuitBreaker.getState());    
+                    }
                 }
             }
         }

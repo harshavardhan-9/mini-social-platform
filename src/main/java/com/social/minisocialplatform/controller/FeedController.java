@@ -9,6 +9,8 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import com.social.minisocialplatform.ratelimiter.RateLimiterService;
+
 @RestController
 @RequestMapping("/api")
 
@@ -18,13 +20,20 @@ public class FeedController {
     @Autowired
     private FeedService feedService;
 
+    @Autowired
+    private RateLimiterService rateLimiterService;
+
     @GetMapping("/feed/{userId}")
     public List<Post> getFeed(@PathVariable String userId) {
         return feedService.getFeed(userId);
     }
 
     @PostMapping("/post")
-    public String addPost(@RequestBody Post post) {
+    public String addPost(@RequestBody Post post, HttpServletRequest request) {
+        String username = (String) request.getAttribute("username");
+        if(!rateLimiterService.allowRequest(username)) {
+            return "Rate limit exceeded. Please try again later.";
+        }
         feedService.addPost(String.valueOf(post.getUserId()), post.getContent());
         return "Post added successfully";
     }
