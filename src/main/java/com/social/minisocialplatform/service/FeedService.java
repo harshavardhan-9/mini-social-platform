@@ -20,7 +20,9 @@ public class FeedService {
     LRUCache<String, List<Post>> feedCache;
     
     private Map<String, Object> requestLocks = new ConcurrentHashMap<>();
-
+    private Map<String, Deque<Post>> pushFeedCache =
+        new ConcurrentHashMap<>();
+    
     private JdbcTemplate jdbcTemplate;
     private ShardRouter shardRouter;
     private PostEventPublisher postEventPublisher;
@@ -86,7 +88,7 @@ public class FeedService {
     public void addPost(String username, String content, String traceId) {
 
         Integer userId = jdbcTemplate.queryForObject(
-            "SELECT id FROM users WHERE username = ?",
+            "SELECT id FROM users WHERE LOWER(username) = LOWER(?)",
             Integer.class,
             username
         );
@@ -144,5 +146,22 @@ public class FeedService {
         long end = System.currentTimeMillis();
         System.out.println("Pull feed fetch latency: " + (end - start) + " ms");
         return feed;
+    }
+
+    public void pushPostToFollowers(String authorId, Post post) {
+        List<Integer> followers = jdbcTemplate.query(
+            "SELECT follower_id FROM follows WHERE followee_id = ?",
+            (rs, rowNum) -> rs.getInt("follower_id"),
+            Integer.parseInt(authorId)
+        );
+
+        for(Integer followerId : followers) {
+            pushFeedCache.computeIfAbsent(String.valueOf(followerId), k -> new LinkedList<>());
+            pushFeedCache.get(String.valueOf(followerId)).addFirst(post);
+        }
+    }
+
+    public List<Post> getPushFeed(String userId) {
+        return new ArrayList<>(pushFeedCache.getOrDefault(userId, new LinkedList<>()));
     }
 }

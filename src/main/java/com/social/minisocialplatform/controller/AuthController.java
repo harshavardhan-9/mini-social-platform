@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.social.minisocialplatform.auth.JwtUtil;
 import com.social.minisocialplatform.auth.UserRepository;
+import com.social.minisocialplatform.model.Post;
 
 
 @RestController

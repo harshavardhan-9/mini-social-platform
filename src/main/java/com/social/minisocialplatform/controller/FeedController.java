@@ -23,10 +23,20 @@ public class FeedController {
     @Autowired
     private RateLimiterService rateLimiterService;
 
-    @GetMapping("/feed/{userId}")
-    public List<Post> getFeed(@PathVariable String userId) {
+    @GetMapping("/feed/pull/{userId}")
+    public List<Post> getPullFeed(@PathVariable String userId) {
         return feedService.getPullFeed(userId);
     }
+
+    @GetMapping("/feed/push/{userId}")
+    public List<Post> getPushFeed(@PathVariable String userId) {
+        return feedService.getPushFeed(userId);
+    }
+
+    // @GetMapping("/feed/hybrid/{userId}")
+    // public List<Post> getHybridFeed(@PathVariable String userId) {
+    //     return feedService.getHybridFeed(userId);
+    // }
 
     @PostMapping("/post")
     public String addPost(@RequestBody Post post, HttpServletRequest request) {
