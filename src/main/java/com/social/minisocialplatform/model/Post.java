@@ -1,12 +1,16 @@
-    package com.social.minisocialplatform.model;
+package com.social.minisocialplatform.model;
+
+import java.sql.Timestamp;
 
     public class Post {
         private int userId;
         private String content;
+        private Timestamp createdAt;
 
-        public Post(int userId, String content) {
+        public Post(int userId, String content, Timestamp createdAt) {
             this.userId = userId;
             this.content = content;
+            this.createdAt = createdAt;
         }
 
         public Post(){
@@ -18,5 +22,9 @@
 
         public String getContent() {
             return content;
+        }
+
+        public Timestamp getCreatedAt() {
+            return createdAt;
         }
     }

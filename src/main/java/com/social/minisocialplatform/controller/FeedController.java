@@ -25,7 +25,7 @@ public class FeedController {
 
     @GetMapping("/feed/{userId}")
     public List<Post> getFeed(@PathVariable String userId) {
-        return feedService.getFeed(userId);
+        return feedService.getPullFeed(userId);
     }
 
     @PostMapping("/post")
@@ -35,7 +35,7 @@ public class FeedController {
             return "Rate limit exceeded. Please try again later.";
         }
         String traceId = (String) request.getAttribute("requestId");
-        feedService.addPost(String.valueOf(post.getUserId()), post.getContent(), traceId);
+        feedService.addPost(username, post.getContent(), traceId);
         return "Post added successfully";
     }
 

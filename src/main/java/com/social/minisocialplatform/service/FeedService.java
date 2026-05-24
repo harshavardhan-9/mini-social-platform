@@ -62,7 +62,8 @@ public class FeedService {
                             "SELECT user_id, content FROM posts WHERE user_id = ?",
                             (rs, rowNum) -> new Post(
                                 rs.getInt("user_id"),
-                                rs.getString("content")
+                                rs.getString("content"),
+                                rs.getTimestamp("created_at")
                             ),
                             Integer.parseInt(userId)
                         );
@@ -82,27 +83,66 @@ public class FeedService {
         return feed;
     }
 
-    public void addPost(String userId, String content, String traceId) {
+    public void addPost(String username, String content, String traceId) {
 
-        String shard = shardRouter.getShard(userId);
+        Integer userId = jdbcTemplate.queryForObject(
+            "SELECT id FROM users WHERE username = ?",
+            Integer.class,
+            username
+        );
+
+        String shard = shardRouter.getShard(String.valueOf(userId));
         System.out.println("Adding post for user " + userId + " to shard: " + shard);
 
         jdbcTemplate.update(
             "INSERT INTO posts(user_id, content) VALUES (?, ?)",
-            Integer.parseInt(userId),
+            userId,
             content
         );
 
         // String traceId =UUID.randomUUID().toString();
 
-        PostCreatedEvent event = new PostCreatedEvent(UUID.randomUUID().toString(), userId, content, traceId);
+        PostCreatedEvent event = new PostCreatedEvent(UUID.randomUUID().toString(), String.valueOf(userId), content, traceId);
         postEventPublisher.publishPostCreatedEvent(event);
         //invalidate cache
-        feedCache.invalidate(userId);
+        feedCache.invalidate(String.valueOf(userId));
     }
 
     public void deletePost(int postId) {
         jdbcTemplate.update("DELETE FROM posts WHERE id = ?", postId);
         System.out.println("Deleted post with ID: " + postId);
     } 
+
+    public List<Post> getPullFeed(String userId) {
+        long start = System.currentTimeMillis();
+
+        List<Integer> followees = jdbcTemplate.query(
+            "SELECT followee_id FROM follows WHERE follower_id = ?",
+            (rs, rowNum) -> rs.getInt("followee_id"),
+            Integer.parseInt(userId)
+        );
+
+        if(followees.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        String inSql = String.join(",", Collections.nCopies(followees.size(), "?"));
+
+        String sql =
+        "SELECT user_id, content, created_at " +
+        "FROM posts " +
+        "WHERE user_id IN (" + inSql + ") " +
+        "ORDER BY created_at DESC " +
+        "LIMIT 20";
+
+        List<Post> feed = jdbcTemplate.query(sql, (rs, rowNum) -> new Post(
+            rs.getInt("user_id"),
+            rs.getString("content"),
+            rs.getTimestamp("created_at")
+        ), followees.toArray());
+
+        long end = System.currentTimeMillis();
+        System.out.println("Pull feed fetch latency: " + (end - start) + " ms");
+        return feed;
+    }
 }
