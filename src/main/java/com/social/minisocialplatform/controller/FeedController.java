@@ -33,10 +33,10 @@ public class FeedController {
         return feedService.getPushFeed(userId);
     }
 
-    // @GetMapping("/feed/hybrid/{userId}")
-    // public List<Post> getHybridFeed(@PathVariable String userId) {
-    //     return feedService.getHybridFeed(userId);
-    // }
+    @GetMapping("/feed/hybrid/{userId}")
+    public List<Post> getHybridFeed(@PathVariable String userId) {
+        return feedService.getHybridFeed(userId);
+    }
 
     @PostMapping("/post")
     public String addPost(@RequestBody Post post, HttpServletRequest request) {

@@ -46,7 +46,7 @@ public class FeedFanoutWorker {
             System.out.println("Updating feed for user: " + event.getUserId());
 
             Post post = new Post(Integer.parseInt(event.getUserId()), event.getContent(),
-                        new java.sql.Timestamp(System.currentTimeMillis()));
+                        new java.sql.Timestamp(System.currentTimeMillis()), 0);
 
             feedService.pushPostToFollowers(event.getUserId(), post);
 

@@ -27,6 +27,11 @@ public class FeedService {
     private ShardRouter shardRouter;
     private PostEventPublisher postEventPublisher;
     private CircuitBreaker circuitBreaker = new CircuitBreaker();
+    
+    private static final int CELEBRITY_THRESHOLD = 1000;
+    
+    private static final double RECENCY_WEIGHT = 0.7;
+    private static final double LIKE_WEIGHT = 0.3;
 
     public FeedService(JdbcTemplate jdbcTemplate, PostEventPublisher postEventPublisher) {
         this.jdbcTemplate = jdbcTemplate;
@@ -65,7 +70,8 @@ public class FeedService {
                             (rs, rowNum) -> new Post(
                                 rs.getInt("user_id"),
                                 rs.getString("content"),
-                                rs.getTimestamp("created_at")
+                                rs.getTimestamp("created_at"),
+                                rs.getInt("like_count")
                             ),
                             Integer.parseInt(userId)
                         );
@@ -131,7 +137,7 @@ public class FeedService {
         String inSql = String.join(",", Collections.nCopies(followees.size(), "?"));
 
         String sql =
-        "SELECT user_id, content, created_at " +
+        "SELECT user_id, content, created_at, like_count " +
         "FROM posts " +
         "WHERE user_id IN (" + inSql + ") " +
         "ORDER BY created_at DESC " +
@@ -140,7 +146,8 @@ public class FeedService {
         List<Post> feed = jdbcTemplate.query(sql, (rs, rowNum) -> new Post(
             rs.getInt("user_id"),
             rs.getString("content"),
-            rs.getTimestamp("created_at")
+            rs.getTimestamp("created_at"),
+            rs.getInt("like_count")
         ), followees.toArray());
 
         long end = System.currentTimeMillis();
@@ -163,5 +170,74 @@ public class FeedService {
 
     public List<Post> getPushFeed(String userId) {
         return new ArrayList<>(pushFeedCache.getOrDefault(userId, new LinkedList<>()));
+    }
+
+    public boolean isCelebrityUser(String userId) {
+
+        Integer followerCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM follows WHERE followee_id = ?",
+            Integer.class,
+            Integer.parseInt(userId)
+        );
+
+        return followerCount > CELEBRITY_THRESHOLD;
+    }
+
+    public List<Post> getHybridFeed(String userId) {
+        long start = System.currentTimeMillis();
+
+        List<Post> finalFeed = new ArrayList<>();
+
+        List<Integer> followees = jdbcTemplate.query(
+            "SELECT followee_id FROM follows WHERE follower_id = ?",
+            (rs, rowNum) -> rs.getInt("followee_id"),
+            Integer.parseInt(userId)
+        );
+
+        for(Integer followeeId : followees) {
+            String followee = String.valueOf(followeeId);
+            if(isCelebrityUser(followee)) {
+
+                List<Post> celebPosts = jdbcTemplate.query(
+                    "SELECT user_id, content, created_at, like_count FROM posts WHERE user_id = ? ORDER BY created_at DESC LIMIT 5",
+                    (rs, rowNum) -> new Post(
+                        rs.getInt("user_id"),
+                        rs.getString("content"),
+                        rs.getTimestamp("created_at"),
+                        rs.getInt("like_count")
+                    ),
+                    followeeId
+                );
+                finalFeed.addAll(celebPosts);
+            }
+            else{
+                finalFeed.addAll(getPushFeed(userId));
+            }
+        }
+        finalFeed.sort((a, b) -> Double.compare(calculateScore(b), calculateScore(a)));
+        for(Post post : finalFeed) {
+            System.out.println(
+                post.getContent()
+                + " score = "
+                + calculateScore(post)
+            );
+        }
+        
+        if(finalFeed.size() > 20) {
+            finalFeed = finalFeed.subList(0, 20);
+        }
+        
+        long end = System.currentTimeMillis();
+        System.out.println("Hybrid feed fetch latency: " + (end - start) + " ms");
+        
+        return finalFeed;
+    }
+
+    private double calculateScore(Post post) {
+        long ageInMinutes = (System.currentTimeMillis() - post.getCreatedAt().getTime());
+        double recencyScore = 1.0 / (1 + ageInMinutes / 60000.0);
+        double likeScore = post.getLikeCount();
+
+        return (RECENCY_WEIGHT * recencyScore) + (LIKE_WEIGHT * likeScore);
     }
 }
