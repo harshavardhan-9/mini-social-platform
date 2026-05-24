@@ -80,6 +80,78 @@ Request Body:
 }
 ```
 
+## Auth APIs
+
+### Signup
+
+```http
+POST /api/auth/signup
+```
+
+Body:
+
+```json
+{
+  "username":"harsha",
+  "password":"123456"
+}
+```
+
+---
+
+### Login
+
+```http
+POST /api/auth/login
+```
+
+Body:
+
+```json
+{
+  "username":"harsha",
+  "password":"123456"
+}
+```
+
+Response:
+
+```json
+{
+  "accessToken":"...",
+  "refreshToken":"..."
+}
+```
+
+# Metrics Endpoint
+
+```http
+GET /metrics
+```
+
+Example Response:
+
+```json
+{
+  "totalRequests": 12,
+  "averageLatencyMs": 45
+}
+```
+
+Structured request logs are generated for every request.
+
+Example:
+
+```json
+{
+  "requestId":"abc123",
+  "method":"POST",
+  "path":"/api/post",
+  "status":200,
+  "latencyMs":45
+}
+```
+
 ---
 
 # Running the Application
@@ -242,6 +314,42 @@ Backpressure triggered. Dropping event
 This prevents worker overload during traffic spikes.
 ---
 
+# Distributed Tracing
+
+Request IDs are propagated through asynchronous RabbitMQ workers.
+
+Flow:
+
+HTTP Request
+↓
+RequestLoggingFilter generates requestId
+↓
+Trace ID attached to event
+↓
+FeedFanoutWorker receives trace ID
+↓
+NotificationWorker receives trace ID
+
+This enables end-to-end tracing across async services.
+
+---
+
+## Security and Observability Features
+
+- JWT authentication
+- Refresh token flow
+- JWT verification middleware
+- RBAC authorization
+- Admin-only endpoints
+- Token bucket rate limiter
+- Circuit breaker pattern
+- Structured JSON request logs
+- Metrics endpoint
+- Distributed trace propagation
+- Request IDs and trace IDs
+- RabbitMQ async event tracing
+
+---
 # Implemented Concepts
 
 * Cache-aside pattern
