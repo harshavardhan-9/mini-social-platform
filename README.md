@@ -516,16 +516,17 @@ Backpressure triggered. Dropping event
 
 ---
 
-# Documentation
+## Documentation
 
-docs/07-caching.md - Adding caching to Instagram-style feed system  
-docs/08-db-choice.md - Database selection and ER design decisions  
-docs/08-ecommerce-db.md - E-commerce relational database design  
-docs/09-sharding-decisions.md - Sharding strategies and partitioning trade-offs  
-docs/09-user-storage.md - Scalable user storage architecture for 100M users  
-docs/10-order-processing.md - Distributed order processing system design  
-docs/11-secure-login.md - Secure JWT authentication, RBAC, rate limiting, tracing, and observability  
-docs/12-feed-hld.md - Designing the Twitter/Instagram feed HLD
+- docs/07-caching.md — Adding caching to Instagram-style feed system
+- docs/08-db-choice.md — Database selection and ER design decisions
+- docs/08-ecommerce-db.md — E-commerce relational database design
+- docs/09-sharding-decisions.md — Sharding strategies and partitioning trade-offs
+- docs/09-user-storage.md — Scalable user storage architecture for 100M users
+- docs/10-order-processing.md — Distributed order processing system design
+- docs/11-secure-login.md — Secure JWT authentication, RBAC, rate limiting, tracing, and observability
+- docs/12-feed-hld.md — Designing the Twitter/Instagram feed HLD
+
 ---
 
 # Future Improvements
